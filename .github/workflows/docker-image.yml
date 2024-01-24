@@ -10,7 +10,7 @@ on:
       misp_ref:
         description: 'MISP branch or tag to build'
         required: true
-        default: '2.4'
+        default: 'v2.4.183'
 
 env:
   # See https://github.com/goodwithtech/dockle/issues/188
@@ -80,7 +80,7 @@ jobs:
       name: Test
       run: |
         docker history misp:${{ steps.variables.outputs.MISP_VERSION }}
-        MISP_IMAGE=misp:${{ steps.variables.outputs.MISP_VERSION }} docker compose --verbose up --detach --quiet-pull --wait --wait-timeout 130
+        MISP_IMAGE=misp:${{ steps.variables.outputs.MISP_VERSION }} docker compose --verbose up --detach --quiet-pull --wait --wait-timeout 300
         docker logs misp
         AUTHKEY=$(docker exec misp su-exec apache /var/www/MISP/app/Console/cake user init)
         VERSION=$(curl --fail -v -H "Authorization: $AUTHKEY" -H "Accept: application/json" http://localhost:8080/servers/getVersion)
