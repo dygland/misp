@@ -2,7 +2,7 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ build ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -10,10 +10,9 @@ on:
       misp_ref:
         description: 'MISP branch or tag to build'
         required: true
-        default: 'develop'
+        default: '2.4'
 
 env:
-  TEST_TAG: misp:latest
   # See https://github.com/goodwithtech/dockle/issues/188
   DOCKLE_HOST: "unix:///var/run/docker.sock"
 
@@ -49,18 +48,38 @@ jobs:
       with:
         context: .
         load: true
-        tags: ${{ env.TEST_TAG }}
+        tags: misp:${{ steps.variables.outputs.MISP_COMMIT }}
         cache-from: type=local,src=/tmp/.buildx-cache/amd64
         cache-to: type=local,dest=/tmp/.buildx-cache-new/amd64,mode=max
         build-args: |
           CACHEBUST=${{ steps.variables.outputs.MISP_COMMIT }}
           MISP_VERSION=${{ steps.variables.outputs.MISP_VERSION }}
     -
+      name: Login to GitHub Container Registry
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    -
+      name: Build and push version to test
+      if: github.event_name != 'pull_request'
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository_owner }}/misp:${{ steps.variables.outputs.MISP_COMMIT }}
+        build-args: |
+          CACHEBUST=${{ steps.variables.outputs.MISP_COMMIT }}
+          MISP_VERSION=${{ steps.variables.outputs.MISP_VERSION }}
+    -
       name: Test
       run: |
-        docker history ${{ env.TEST_TAG }}
-        MISP_IMAGE=${{ env.TEST_TAG }} docker compose up --detach --quiet-pull
-        sleep 10 # Wait until container is ready
+        docker history misp:${{ steps.variables.outputs.MISP_COMMIT }}
+        MISP_IMAGE=misp:${{ steps.variables.outputs.MISP_COMMIT }} docker compose up --detach --quiet-pull --wait --wait-timeout 130
         docker logs misp
         AUTHKEY=$(docker exec misp su-exec apache /var/www/MISP/app/Console/cake user init)
         VERSION=$(curl --fail -v -H "Authorization: $AUTHKEY" -H "Accept: application/json" http://localhost:8080/servers/getVersion)
@@ -70,20 +89,8 @@ jobs:
       name: Container scan
       uses: azure/container-scan@v0
       with:
-        image-name: ${{ env.TEST_TAG }}
+        image-name:  ghcr.io/${{ github.repository_owner }}/misp:${{ steps.variables.outputs.MISP_COMMIT }}
         severity-threshold: CRITICAL
-    -
-      name: Build Docker for linux/arm64
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        platforms: linux/arm64
-        tags: ${{ env.TEST_TAG }}
-        cache-from: type=local,src=/tmp/.buildx-cache/arm64
-        cache-to: type=local,dest=/tmp/.buildx-cache-new/arm64,mode=max
-        build-args: |
-          CACHEBUST=${{ steps.variables.outputs.MISP_COMMIT }}
-          MISP_VERSION=${{ steps.variables.outputs.MISP_VERSION }}
     -
       # Temp fix
       # https://github.com/docker/build-push-action/issues/252
@@ -94,31 +101,15 @@ jobs:
         mv /tmp/.buildx-cache-new /tmp/.buildx-cache
         du -sh /tmp/.buildx-cache
     -
-      name: Login to GitHub Container Registry
-      if: github.event_name != 'pull_request'
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    -
-      name: Login to DockerHub
-      if: github.event_name != 'pull_request'
-      uses: docker/login-action@v3
-      with:
-        username: nukib
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    -
-      name: Build and push
+      name: Build and push as latest
       if: github.event_name != 'pull_request'
       uses: docker/build-push-action@v5
       with:
         context: .
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/amd64
         push: true
         tags: |
-          nukib/misp:latest
-          ghcr.io/nukib/misp:latest
+          ghcr.io/${{ github.repository_owner }}/misp:latest
         build-args: |
           CACHEBUST=${{ steps.variables.outputs.MISP_COMMIT }}
           MISP_VERSION=${{ steps.variables.outputs.MISP_VERSION }}
