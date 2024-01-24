@@ -15,6 +15,7 @@ on:
 env:
   # See https://github.com/goodwithtech/dockle/issues/188
   DOCKLE_HOST: "unix:///var/run/docker.sock"
+  BUILDX_NO_DEFAULT_ATTESTATIONS: 1
 
 jobs:
   build:
@@ -48,7 +49,7 @@ jobs:
       with:
         context: .
         load: true
-        tags: misp:${{ github.event.inputs.misp_ref }}
+        tags: misp:${{ steps.variables.outputs.MISP_VERSION }}
         cache-from: type=local,src=/tmp/.buildx-cache/amd64
         cache-to: type=local,dest=/tmp/.buildx-cache-new/amd64,mode=max
         build-args: |
