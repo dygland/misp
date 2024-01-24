@@ -72,15 +72,15 @@ jobs:
         platforms: linux/amd64
         push: true
         tags: |
-          ghcr.io/${{ github.repository_owner }}/misp:${{ steps.variables.outputs.MISP_COMMIT }}
+          ghcr.io/${{ github.repository_owner }}/misp:${{ steps.variables.outputs.MISP_VERSION }}
         build-args: |
           CACHEBUST=${{ steps.variables.outputs.MISP_COMMIT }}
           MISP_VERSION=${{ steps.variables.outputs.MISP_VERSION }}
     -
       name: Test
       run: |
-        docker history misp:${{ steps.variables.outputs.MISP_COMMIT }}
-        MISP_IMAGE=misp:${{ steps.variables.outputs.MISP_COMMIT }} docker compose --verbose up --detach --quiet-pull --wait --wait-timeout 130
+        docker history misp:${{ steps.variables.outputs.MISP_VERSION }}
+        MISP_IMAGE=misp:${{ steps.variables.outputs.MISP_VERSION }} docker compose --verbose up --detach --quiet-pull --wait --wait-timeout 130
         docker logs misp
         AUTHKEY=$(docker exec misp su-exec apache /var/www/MISP/app/Console/cake user init)
         VERSION=$(curl --fail -v -H "Authorization: $AUTHKEY" -H "Accept: application/json" http://localhost:8080/servers/getVersion)
@@ -90,7 +90,7 @@ jobs:
       name: Container scan
       uses: azure/container-scan@v0
       with:
-        image-name:  ghcr.io/${{ github.repository_owner }}/misp:${{ steps.variables.outputs.MISP_COMMIT }}
+        image-name:  ghcr.io/${{ github.repository_owner }}/misp:${{ steps.variables.outputs.MISP_VERSION }}
         severity-threshold: CRITICAL
     -
       # Temp fix
