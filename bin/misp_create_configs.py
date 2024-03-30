@@ -167,6 +167,7 @@ VARIABLES = {
     "OIDC_ORGANISATION_PROPERTY": Option(default="organization"),
     "OIDC_OFFLINE_ACCESS": Option(typ=bool, default=False),
     "OIDC_CHECK_USER_VALIDITY": Option(typ=int, default=0, validation=check_uint),
+    "OIDC_UPDATE_USER_ROLE": Option(typ=bool, default=True),
     "OIDC_TOKEN_SIGNED_ALGORITHM": Option(),
     # Logging
     "ECS_LOG_ENABLED": Option(typ=bool, default=False),
@@ -204,6 +205,7 @@ VARIABLES = {
     "MISP_DEFAULT_PUBLISH_ALERT": Option(typ=bool, default=False),
     "MISP_HOST_ORG_ID": Option(typ=int, default=1, validation=check_uint),
     "MISP_DEBUG": Option(typ=bool, default=False),
+    "MISP_OUTPUT_COMPRESSION": Option(typ=bool, default=True),
     "MISP_TERMS_FILE": Option(),
     "MISP_HOME_LOGO": Option(),
     "MISP_FOOTER_LOGO": Option(),

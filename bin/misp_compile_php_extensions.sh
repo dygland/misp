@@ -5,7 +5,7 @@ set -e
 set -o xtrace
 
 download_and_check () {
-  curl --proto '=https' --tlsv1.3 -sS --location --fail -o package.tar.gz $1
+  curl --proto '=https' --tlsv1.3 -sS --location --fail -o package.tar.gz "$1"
   echo "$2 package.tar.gz" | sha256sum -c
   tar zxf package.tar.gz --strip-components=1
   rm -f package.tar.gz
@@ -38,9 +38,9 @@ mv modules/*.so /build/php-modules/
 # Compile zstd library and zstd extension
 mkdir /tmp/zstd
 cd /tmp/zstd
-download_and_check https://github.com/kjdev/php-ext-zstd/archive/refs/tags/0.12.1.tar.gz f07d2bbf788565a7a161643b0de218d7d4de0efb07bf5cf600e20fdcd673763e
+download_and_check https://github.com/kjdev/php-ext-zstd/archive/refs/tags/0.13.3.tar.gz 547f84759c2177f4415ae4a5d5066f09d2979f06aa2b3b4b97b42c0990a1efc5
 cd zstd
-download_and_check https://github.com/facebook/zstd/releases/download/v1.5.5/zstd-1.5.5.tar.gz 9c4396cc829cfae319a6e2615202e82aad41372073482fce286fac78646d3ee4
+download_and_check https://github.com/facebook/zstd/archive/refs/tags/v1.5.6.tar.gz 30f35f71c1203369dc979ecde0400ffea93c27391bfd2ac5a9715d2173d92ff7
 cd ..
 phpize
 ./configure --silent
@@ -59,7 +59,7 @@ mv modules/*.so /build/php-modules/
 # Compile ssdeep
 mkdir /tmp/ssdeep
 cd /tmp/ssdeep
-download_and_check https://github.com/php/pecl-text-ssdeep/archive/refs/tags/1.1.0.tar.gz 256c5c1d6b965f1c6e0f262b6548b1868f4857c5145ca255031a92d602e8b88d
+download_and_check https://github.com/JakubOnderka/pecl-text-ssdeep/archive/3a2e2d9e5d58fe55003aa8b1f31009c7ad7f54e0.tar.gz 275bb3d6ed93b5897c9b37dac358509c3696239f521453d175ac582c81e23cbb
 phpize
 ./configure --silent --with-ssdeep=/usr --with-libdir=lib64
 make -j$(nproc)
@@ -68,7 +68,7 @@ mv modules/*.so /build/php-modules/
 # Compile brotli
 mkdir /tmp/brotli
 cd /tmp/brotli
-download_and_check https://github.com/kjdev/php-ext-brotli/archive/refs/tags/0.14.2.tar.gz 40b00f6ab75a4ce54b8af009e8ad2ac5077a4a35d6bbb50807324565b8472bee
+download_and_check https://github.com/kjdev/php-ext-brotli/archive/48bf4071d266c556d61684e07d40d917f61c9eb7.tar.gz c145696965fac0bacd6b5ffef383eaf7a67539e9a0ed8897ab1632ca119510c6
 phpize
 ./configure --silent --with-libbrotli
 make -j$(nproc)

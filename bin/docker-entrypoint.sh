@@ -3,7 +3,7 @@
 set -e
 
 # Change volumes permission to apache user
-chown apache:apache /var/www/MISP/app/attachments /var/www/MISP/app/tmp/logs /var/www/MISP/app/files/certs
+chown apache:apache /var/www/MISP/app/{attachments,tmp/logs,files/certs,files/img/orgs,files/img/custom}
 
 if [ "$1" = 'supervisord' ]; then
     echo "======================================"
@@ -15,14 +15,21 @@ if [ "$1" = 'supervisord' ]; then
 
     update-crypto-policies
 
+    # Create tmp directory for cake cache
+    mkdir -p -m 770 /tmp/cake/
+    chown apache:apache /tmp/cake/
+
     # Make config files not readable by others
     chown root:apache /var/www/MISP/app/Config/{config.php,database.php,email.php}
     chmod 440 /var/www/MISP/app/Config/{config.php,database.php,email.php}
 
     # Check syntax errors in generated config files
-    su-exec apache php -l /var/www/MISP/app/Config/config.php
-    su-exec apache php -l /var/www/MISP/app/Config/database.php
-    su-exec apache php -l /var/www/MISP/app/Config/email.php
+    su-exec apache php -n -l /var/www/MISP/app/Config/config.php
+    su-exec apache php -n -l /var/www/MISP/app/Config/database.php
+    su-exec apache php -n -l /var/www/MISP/app/Config/email.php
+
+    # Create symlinks to images from customisation
+    su-exec apache misp_image_symlinks.py
 
     # Check if all permissions are OK
     su-exec apache misp_check_permissions.py

@@ -39,6 +39,7 @@ $oidcAuth = [
     'unblock' => true,
     'offline_access' => {{ OIDC_OFFLINE_ACCESS | bool }},
     'check_user_validity' => {{ OIDC_CHECK_USER_VALIDITY }},
+    'update_user_role' => {{ OIDC_UPDATE_USER_ROLE | bool}},
 ];
 $plugin['CustomAuth_custom_logout'] = "{{ MISP_BASEURL }}/oauth2callback?logout={{ MISP_BASEURL | urlencode }}";
 $plugin['CustomAuth_custom_password_reset'] = {{ OIDC_PASSWORD_RESET | str }};
@@ -93,6 +94,7 @@ $config = [
     'enable_advanced_correlations' => true,
     'log_user_ips' => true,
     'log_user_ips_authkeys' => true,
+    'log_skip_access_logs_in_application_logs' => true,
     'disable_cached_exports' => true,
     'allow_disabling_correlation' => true,
     'system_setting_db' => true,
@@ -103,6 +105,8 @@ $config = [
     'custom_css' => {{ MISP_CUSTOM_CSS | str }},
     'tmpdir' => '/tmp',
     'log_client_ip_header' => 'HTTP_X_FORWARDED_FOR',
+    'thumbnail_in_redis' => true,
+    'self_update' => false,
   ],
   'SimpleBackgroundJobs' => [
     'enabled' => true,
