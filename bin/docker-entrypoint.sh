@@ -44,7 +44,7 @@ if [ "$1" = 'supervisord' ]; then
     su-exec apache misp_create_database.py "$MYSQL_HOST" "$MYSQL_LOGIN" "$MYSQL_DATABASE" /var/www/MISP/INSTALL/MYSQL.sql
 
     # Check if redis is listening and running
-    su-exec apache /var/www/MISP/app/Console/cake Admin redisReady
+    su-exec apache misp_redis_ready.py
 
     # Update database to latest version
     su-exec apache /var/www/MISP/app/Console/cake Admin runUpdates || true
@@ -75,8 +75,9 @@ do
   unset "$variable_name"
 done
 
-# Remove possible exists PID files
-rm -f /var/run/httpd/httpd.pid
-rm -f /var/run/syslogd.pid
+# Remove possible exists PID and socket files
+rm -f /run/httpd/httpd.pid
+rm -f /run/syslogd.pid
+rm -f /run/vector
 
 exec "$@"
